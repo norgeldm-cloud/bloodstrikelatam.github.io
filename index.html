@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zona Blood Strike</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: #0b0b0b;
+      color: #f5f5f5;
+    }
+    header {
+      background: #8b0000;
+      padding: 15px 20px;
+      font-size: 1.5em;
+      font-weight: 600;
+      border-bottom: 2px solid #ff0000;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    #searchBar {
+      display: flex;
+      justify-content: center;
+      padding: 15px;
+      background: #121212;
+      border-bottom: 1px solid #333;
+    }
+    #searchInput {
+      width: 60%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+      background: #2a2a2a;
+      color: #fff;
+    }
+    .feed {
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+    .post {
+      background: #1c1c1c;
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #ff0000;
+      box-shadow: 0 0 10px rgba(255,0,0,0.1);
+    }
+    .post img, .post video {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .like-btn {
+      background: #2a2a2a;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .like-btn.liked {
+      background: #ff0000;
+    }
+    .comments {
+      margin-top: 15px;
+    }
+    .comments input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      background: #2a2a2a;
+      color: white;
+      margin-top: 5px;
+    }
+    .comment {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: #2a2a2a;
+      border-radius: 6px;
+      font-size: 0.9em;
+    }
+    .comment strong {
+      color: #ff0000;
+    }
+    #uploadBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff0000;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 2em;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255,0,0,0.5);
+    }
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+    }
+    #modalContent {
+      background: #1c1c1c;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      border: 2px solid #ff0000;
+    }
+    textarea, input[type="file"], button, input[type="text"] {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+      background: #2a2a2a;
+      color: #fff;
+    }
+    button {
+      background: #ff0000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>🩸 Blood Strike Latam</header>
+  <div id="searchBar">
+    <input type="text" id="searchInput" placeholder="Buscar por #hashtag o palabra clave..." />
+  </div>
+
+  <div class="feed" id="feedContent"></div>
+
+  <button id="uploadBtn">＋</button>
+
+  <div id="modal">
+    <div id="modalContent">
+      <form id="postForm">
+        <textarea placeholder="Comparte tu clip, build o meme..." required></textarea>
+        <input type="file" accept="image/*,video/*" />
+        <button type="submit">Subir</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let username = "striker anonimo";
+
+    window.onload = () => {
+      const name = prompt("coloca un nombre de usuario:");
+      if (name && name.trim() !== "") {
+        username = name.trim();
+      }
+    };
+
+    const feedContent = document.getElementById('feedContent');
+    const modal = document.getElementById('modal');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const postForm = document.getElementById('postForm');
+    const searchInput = document.getElementById('searchInput');
+
+    uploadBtn.onclick = () => modal.style.display = 'flex';
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; }
+
+    postForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = postForm.querySelector('textarea').value;
+      const file = postForm.querySelector('input[type="file"]').files[0];
+
+      const post = document.createElement('div');
+      post.className = 'post';
+      post.innerHTML = `<p><strong>${username}:</strong> ${text}</p>`;
+
+      if (file) {
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith('image')) {
+          const img = document.createElement('img');
+          img.src = url;
+          img.onclick = () => img.requestFullscreen();
+          post.appendChild(img);
+        } else if (file.type.startsWith('video')) {
+          const vid = document.createElement('video');
+          vid.src = url;
+          vid.controls = true;
+          vid.onclick = () => vid.requestFullscreen();
+          post.appendChild(vid);
+        }
+      }
+
+      // Like único por usuario
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'like-btn';
+      likeBtn.textContent = ' 👍 0';
+      let likes = 0;
+      let liked = false;
+      likeBtn.onclick = () => {
+        if (!liked) {
+          likes++;
+          liked = true;
+          likeBtn.textContent = ` 👍 ${likes}`;
+          likeBtn.classList.add('liked');
+        }
+      };
+      actions.appendChild(likeBtn);
+      post.appendChild(actions);
+
+      // Comentarios con nombre
+      const comments = document.createElement('div');
+      comments.className = 'comments';
+      const commentInput = document.createElement('input');
+      commentInput.placeholder = 'Escribe un comentario';
+      commentInput.onkeypress = (e) => {
+        if (e.key === 'Enter' && commentInput.value.trim()) {
+          const comment = document.createElement('div');
+          comment.className = 'comment';
+          comment.innerHTML = `<strong>${username}:</strong> ${commentInput.value}`;
+          comments.appendChild(comment);
+          commentInput.value = '';
+        }
+      };
+      comments.appendChild(commentInput);
+      post.appendChild(comments);
+
+      feedContent.prepend(post);
+      postForm.reset();
+      modal.style.display = 'none';
+    });
+
+    searchInput.addEventListener('input', function () {
+      const keyword = this.value.toLowerCase();
+      const posts = document.querySelectorAll('#feedContent .post');
+      posts.forEach(post => {
+        post.style.display = post.textContent.toLowerCase().includes(keyword) ? 'block' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
