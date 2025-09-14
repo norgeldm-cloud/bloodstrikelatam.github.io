@@ -6,6 +6,7 @@
   <title>Zona Blood Strike</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
+    /* Tu estilo visual original */
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
@@ -164,7 +165,23 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnW6aomac__T8YfdDihl_miu4h7O4bxDQ",
+      authDomain: "blood-strike-latam.firebaseapp.com",
+      databaseURL: "https://blood-strike-latam-default-rtdb.firebaseio.com",
+      projectId: "blood-strike-latam",
+      storageBucket: "blood-strike-latam.appspot.com",
+      messagingSenderId: "962222466084",
+      appId: "1:962222466084:web:aa99a40285feb3eb3724b1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     let username = "striker anonimo";
 
     window.onload = () => {
@@ -188,65 +205,24 @@
       const text = postForm.querySelector('textarea').value;
       const file = postForm.querySelector('input[type="file"]').files[0];
 
-      const post = document.createElement('div');
-      post.className = 'post';
-      post.innerHTML = `<p><strong>${username}:</strong> ${text}</p>`;
-
-      if (file) {
-        const url = URL.createObjectURL(file);
-        if (file.type.startsWith('image')) {
-          const img = document.createElement('img');
-          img.src = url;
-          img.onclick = () => img.requestFullscreen();
-          post.appendChild(img);
-        } else if (file.type.startsWith('video')) {
-          const vid = document.createElement('video');
-          vid.src = url;
-          vid.controls = true;
-          vid.onclick = () => vid.requestFullscreen();
-          post.appendChild(vid);
-        }
-      }
-
-      // Like único por usuario
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      const likeBtn = document.createElement('button');
-      likeBtn.className = 'like-btn';
-      likeBtn.textContent = ' 👍 0';
-      let likes = 0;
-      let liked = false;
-      likeBtn.onclick = () => {
-        if (!liked) {
-          likes++;
-          liked = true;
-          likeBtn.textContent = ` 👍 ${likes}`;
-          likeBtn.classList.add('liked');
-        }
+      const postData = {
+        autor: username,
+        mensaje: text,
+        timestamp: Date.now()
       };
-      actions.appendChild(likeBtn);
-      post.appendChild(actions);
 
-      // Comentarios con nombre
-      const comments = document.createElement('div');
-      comments.className = 'comments';
-      const commentInput = document.createElement('input');
-      commentInput.placeholder = 'Escribe un comentario';
-      commentInput.onkeypress = (e) => {
-        if (e.key === 'Enter' && commentInput.value.trim()) {
-          const comment = document.createElement('div');
-          comment.className = 'comment';
-          comment.innerHTML = `<strong>${username}:</strong> ${commentInput.value}`;
-          comments.appendChild(comment);
-          commentInput.value = '';
-        }
-      };
-      comments.appendChild(commentInput);
-      post.appendChild(comments);
+      push(ref(db, "publicaciones"), postData);
 
-      feedContent.prepend(post);
       postForm.reset();
       modal.style.display = 'none';
+    });
+
+    onChildAdded(ref(db, "publicaciones"), (data) => {
+      const pub = data.val();
+      const post = document.createElement("div");
+      post.className = "post";
+      post.innerHTML = `<p><strong>${pub.autor}:</strong> ${pub.mensaje}</p>`;
+      feedContent.prepend(post);
     });
 
     searchInput.addEventListener('input', function () {
